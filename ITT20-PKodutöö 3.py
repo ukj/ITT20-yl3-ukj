@@ -97,10 +97,21 @@ def yl_vastuvoetud():
 #yl_vastuvoetud()
 
 
+
+def yl_jukebox():
+    """ jukebox """
+    pealkiri('Jukebox')
+    print('\n\nJukebox on failis \'ITT20-PKodutöö-3-Jukebox.py\'\n\n')
+
+
+
+
+
 def yl_janesteSysteem(ringe=-1):
     '''Jänesevanemad on mures'''
+    pealkiri('Jänesevanemate mure ver. 3')
     #if(ringe == -1):
-    #    pealkiri('Jänesevanemate mure ver. 3')
+    #
     #    ringe = input_taisarv("Mitu ringi jänkupoeg tegi: ")
     #print("Jänkupoeg tegi",ringe,"ja saab", sum([ i for i in range(2, ringe) if i%2==0 ]),"porgandit.")
     
@@ -149,7 +160,7 @@ def yl_tahvlijuurde():
 
 
 
-yl_def_list =  ['yl_vastuvoetud', 'yl_janesteSysteem', 'yl_sissetulekud', 'yl_tahvlijuurde']
+yl_def_list =  ['yl_vastuvoetud', 'yl_janesteSysteem', 'yl_jukebox', 'yl_sissetulekud', 'yl_tahvlijuurde']
 
 print('\n\nÜlesanded', yl_def_list, '\n')
 for yl_def in yl_def_list:
