@@ -3,7 +3,7 @@ import os, sys, textwrap
 from os import listdir
 from os.path import isfile, join
 
-
+# TODO: Nimede liigitamine ja ühtlustamine
 
 
 class JukeboxPlaat:
@@ -238,27 +238,56 @@ class Jukebox:
         ''' '''
         return textwrap.fill('[\''+ '\', \''.join(list(self.plaadid.keys())) + '\']' , width=70)
 
-    def format_jb_screen(self, msg, o=0):
+
+
+
+
+    ui_kogu = {}
+    def ui_keha(self, msg, o=80, name=''):
         '''
+        o:int, laius
+        name:str, ploki nimi
         '''
+        res=''
         m = msg.split('\n')
         if o == 0:
             for r in m:
-                print('    | '+r)
+                res +='    | '+r+'\n'
         else:
             for r in m:
-                print( f'    |' +r+ ''.join([" " for i in range(80-6-len(r)) ] ) +'|' )
+                res += f'    |' +r+ ''.join([" " for i in range(o-6-len(r)) ] ) +'|\n'
+        self.ui_kogu[name]=res
 
-    def pealkiri(self, p, s):
+    def ui_pais(self, p, s, o=80, name=''):
         '''
         paramaters
         p:str, pealkiri
         s:str, staatus
+        o:int, laius
+        name:str, ploki nimi
         '''
-        print( ''.join(["." for i in range(80) ] ))
-        print( f'[{s}]' + ''.join([" " for i in range(80-2-len(p+s)) ] ) +p )
+        res=''
+        res += ''.join(["." for i in range(o) ] ) +'\n'
+        res += f'[{s}]' + ''.join([" " for i in range(o-2-len(p+s)) ] ) +p+'\n'
+        self.ui_kogu[name]=res
 
-    def clear_screen(self):
+
+
+    def ui_uuendaja(self):
+        ''' '''
+        self.ui_clear()
+        res = self.ui_kogu['head'] + self.ui_kogu['plnum'] + self.ui_kogu['pllist'] + self.ui_kogu['juh1'] \
+                + self.ui_kogu['juh2'] + self.ui_kogu['plnum'] + self.ui_kogu['seepl'] + \
+                self.ui_kogu['plteave'] + self.ui_kogu['plsisuk'] + self.ui_kogu['plesit'] + \
+                self.ui_kogu['plviga'] + self.ui_kogu['com']
+        print(res)
+
+
+    def ui_init(self):
+        for e in ['head','plnum','pllist','juh1','juh2','plnum','seepl','plteave','plsisuk','plesit','plviga','com']:
+            self.ui_kogu[e]=''
+
+    def ui_clear(self):
         if os.name == 'posix':
             _ = os.system('clear')
         else:
@@ -267,84 +296,61 @@ class Jukebox:
 
 
 
+
+
 # https://kyletk.com/index.php/2017/12/16/overwriting-line-console-output-python/
 plaadisahtel = '.'
 juk = Jukebox()
 juk_n = juk.laadiKaust(plaadisahtel)
-ui_loop=True
+ui_input_loop=True
 juk_staatus='#'
 plaat=''
-while ui_loop:
-    juk.clear_screen()
-    juk.pealkiri('JUK',juk_staatus)
-    juk.format_jb_screen( textwrap.fill("Jukeboxi plaadisahtlis on {} plaati:".format(juk_n), width=70), 80 )
-    juk.format_jb_screen( textwrap.fill("{}".format( juk.Plaadid_list()), width=70), 80 )
-    juk.format_jb_screen( textwrap.fill("""Kasutada saab ainult sobivas vormis faile. Plaadi valimiseks 
-    tuleb sisestada selle nimi ja lisamiseks selle täielik või suhteline faili aadress.""", width=70), 80 )
-    juk.format_jb_screen( textwrap.fill( "Lõpetamiseks ja tagasi liikumiseks sisestage Q"    , width=70), 80 )
+
+juk.ui_init()
+juk.ui_pais('JUK',juk_staatus, name='head')
+juk.ui_keha( textwrap.fill("Jukeboxi plaadisahtlis on {} plaati:".format(juk_n), width=70), 80, name='plnum' )
+juk.ui_keha( textwrap.fill("    {}".format( juk.Plaadid_list()), width=70), 80, name='pllist' )
+juk.ui_keha( textwrap.fill("""Kasutada saab ainult sobivas vormis faile. Plaadi valimiseks 
+    tuleb sisestada selle nimi ja lisamiseks selle täielik või suhteline faili aadress.""", width=70), 80, name='juh1' )
+juk.ui_keha( textwrap.fill( "Lõpetamiseks ja tagasi liikumiseks sisestage Q"    , width=70), 80, name='juh2' )
+juk.ui_keha( '    SEE PLAAT\n    ---------',80, name='seepl' )
+
+
+while ui_input_loop:
+    juk.ui_uuendaja()
+    juk.ui_keha( textwrap.fill("Jukeboxi plaadisahtlis on {} plaati:".format(juk_n), width=70), 80, name='plnum' )
+    juk.ui_keha( textwrap.fill("    {}".format( juk.Plaadid_list()), width=70), 80, name='pllist' )
     
-    plaat = input('Plaat: ').strip()
+    juk.ui_keha('Plaat: ', 0, name='com')
+    juk.ui_uuendaja()
+    plaat = input().strip()
     if juk.valiPlaat(plaat):
         juk_staatus ='#'
-        juk.format_jb_screen( '    SEE PLAAT\n    ---------',80 )
-        juk.format_jb_screen( juk.PlaadiTeave(), 80 )
-        juk.format_jb_screen(  juk.PlaadiSisukord() ,80)
+        juk.ui_pais('JUK',juk_staatus, name='head')
+        juk.ui_keha( juk.PlaadiTeave(), 80, name='plteave' )
+        juk.ui_keha(  juk.PlaadiSisukord() ,80, name='plsisuk')
+        juk.ui_uuendaja()
 
         ui_laul_loop=True
         while ui_laul_loop:
-            laul = input('Laulu nr: ').strip()
+            juk.ui_keha('Laulu nr: ', 0, name='com')
+            juk.ui_uuendaja()
+            laul = input().strip()
             if laul in 'qQ':
                 break
+            
             juk_staatus ='> ' + juk.plaadid[juk.plaadiId()].get_lugu(int(laul))
-            juk.format_jb_screen('Mängimisel:        >\n'+juk.plaadid[juk.plaadiId()].get_lugu_pealkiri(int(laul)), 80)
-
+            juk.ui_pais('JUK',juk_staatus, name='head')
+            juk.ui_keha('Mängimisel:        >\n'+juk.plaadid[juk.plaadiId()].get_lugu(int(laul)), 80, name='plesit')
+            juk.ui_uuendaja()
     elif plaat in 'qQ':
-        juk.clear_screen()
+        juk.ui_uuendaja()
         break
     else:
         juk_staatus ='?'
-        juk.format_jb_screen('Plaati ei õnnestunud laadida!', 80)
+        juk.ui_pais('JUK',juk_staatus, name='head')
+        juk.ui_keha('Plaati ei õnnestunud laadida!', 80, name='plviga')
+        juk.ui_uuendaja()
         break   
 
 
-
-''''
-temp = vars(juk)
-print('Object juk klass: ', juk.__class__ )
-attrs = vars(juk)
-for item in attrs.items():
-    print(item[0],':' ,item[1])
-'''
-
-'''
-def pydoc(klass, fail):
-    klname = klass.__name__
-    doc = ''
-    doc_f = open(fail, "a")
-
-    doc_f.write(klass.__name__+"\n")
-    #exec(f"doc_f.write({klname}.__doc__)")
-    doc += "\n\n\n\t\t"+klname +"\n\t\t################\n\t\t<< "+ klass.__doc__+" >> \n\n"
-    for method in [method for method in dir(klass) if method.startswith('_') is False]:
-        doc += "\t"+method+"\n\t<< "
-        #doc+=(klass.__name__).method.__doc__
-
-
-
-        # TODO: :(
-        exec(f"doc += klass.{method}.__doc__" , {'doc':doc, 'klass':klass} )
-
-
-
-
-
-        doc += " >>\n\n"
-    
-    doc += "\n\n---------------\n\n"
-    doc_f.write(doc)
-    doc_f.close()
-
-
-pydoc(Jukebox, "./jukebox_doc.txt")
-pydoc(JukeboxPlaat, "./jukebox_doc.txt")
-'''
